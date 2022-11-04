@@ -1,7 +1,8 @@
-# bubbletea-app-template
+![Logo](/images/C9s_circle.png)
+
+# Test Bubbletea Application
 
 A template repository to create [Bubbletea][bubbletea] apps.
-
 ## Included
 
 - a sample app that does nothing, so it includes all dependencies:

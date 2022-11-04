@@ -127,11 +127,11 @@ func (m EntryModel) View() string {
 
 	switch m.state {
 	case projectView:
-		str += m.projectSelect.RenderView(&m.stateData)
+		str = m.projectSelect.RenderView(&m.stateData)
 	case regionView:
-		str += m.regionSelect.RenderView(&m.stateData)
+		str = m.regionSelect.RenderView(&m.stateData)
 	case resultsView:
-		str += m.resultsView.RenderView(&m.stateData)
+		str = m.resultsView.RenderView(&m.stateData)
 	}
 
 	if m.quitting {
