@@ -1,4 +1,7 @@
-![Logo](/images/C9s_circle.png)
+<p align="center">
+  <img width="400" height="400" src="https://github.com/willis81808/bubbletea-test-app/raw/main/images/C9s_circle.png">
+</p>
+
 
 # Test Bubbletea Application
 
