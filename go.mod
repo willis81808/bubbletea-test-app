@@ -1,4 +1,4 @@
-module main
+module github.com/willis81808/bubbletea-test-app
 
 go 1.18
 

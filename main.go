@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"os"
 
-	"main/internal/data"
-	"main/internal/views/project"
-	"main/internal/views/region"
-	"main/internal/views/results"
+	"github.com/willis81808/bubbletea-test-app/internal/data"
+	"github.com/willis81808/bubbletea-test-app/internal/views/project"
+	"github.com/willis81808/bubbletea-test-app/internal/views/region"
+	"github.com/willis81808/bubbletea-test-app/internal/views/results"
 
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/lipgloss"

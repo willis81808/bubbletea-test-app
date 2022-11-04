@@ -1,7 +1,7 @@
 package project
 
 import (
-	"main/internal/data"
+	"github.com/willis81808/bubbletea-test-app/internal/data"
 
 	"github.com/charmbracelet/bubbles/spinner"
 	"github.com/charmbracelet/bubbles/textinput"

@@ -2,7 +2,8 @@ package results
 
 import (
 	"fmt"
-	"main/internal/data"
+
+	"github.com/willis81808/bubbletea-test-app/internal/data"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"

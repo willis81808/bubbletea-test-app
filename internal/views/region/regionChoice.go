@@ -1,7 +1,7 @@
 package region
 
 import (
-	"main/internal/data"
+	"github.com/willis81808/bubbletea-test-app/internal/data"
 
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
