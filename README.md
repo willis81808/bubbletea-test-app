@@ -1,5 +1,5 @@
 <p align="center">
-  <img width="400" src="https://github.com/willis81808/bubbletea-test-app/raw/main/images/c9s_circle.png">
+  <img width="400" src="https://github.com/willis81808/bubbletea-test-app/raw/main/images/c9s_logo.png">
 </p>
 
 
