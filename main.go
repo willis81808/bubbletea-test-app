@@ -5,11 +5,12 @@ import (
 	"os"
 
 	"github.com/willis81808/bubbletea-test-app/internal/data"
+	"github.com/willis81808/bubbletea-test-app/internal/utils"
+	"github.com/willis81808/bubbletea-test-app/internal/views/compound"
 	"github.com/willis81808/bubbletea-test-app/internal/views/project"
 	"github.com/willis81808/bubbletea-test-app/internal/views/region"
 	"github.com/willis81808/bubbletea-test-app/internal/views/results"
 
-	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/lipgloss"
 	zone "github.com/lrstanley/bubblezone"
 
@@ -20,6 +21,7 @@ const (
 	regionView sessionState = iota
 	projectView
 	resultsView
+	compoundView
 )
 
 var (
@@ -31,37 +33,62 @@ type sessionState uint
 type errMsg error
 
 type EntryModel struct {
-	state         sessionState
-	stateData     data.StateBag
-	regionSelect  region.RegionSelect
-	projectSelect project.ProjectSelect
-	resultsView   results.ResultsPage
-	quitting      bool
-	err           error
+	state     sessionState
+	history   *utils.Stack[sessionState]
+	stateData data.StateBag
+	models    map[sessionState]utils.SubModel
+	err       error
 }
-
-var quitKeys = key.NewBinding(
-	key.WithKeys("q", "esc", "ctrl+c"),
-	key.WithHelp("", "press q to quit"),
-)
 
 func initialModel() EntryModel {
 	model := EntryModel{state: projectView}
 
-	model.projectSelect = project.InitialProjectSelect()
-	model.projectSelect.Wrapper = FullscreenStyle
+	projectModel := project.InitialProjectSelect()
+	projectModel.Wrapper = FullscreenStyle
 
-	model.regionSelect = region.InitialRegionSelect()
+	regionModel := region.InitialRegionSelect()
 
-	model.resultsView = results.InitialResultsPage()
-	model.resultsView.Wrapper = FullscreenStyle
+	resultsModel := results.InitialResultsPage()
+	resultsModel.Wrapper = FullscreenStyle
+
+	compoundModel := compound.InitialCompoundView()
 
 	model.stateData = data.NewStateBag()
+
+	model.history = utils.NewStack[sessionState]()
+
+	model.models = make(map[sessionState]utils.SubModel)
+	model.models[projectView] = projectModel
+	model.models[regionView] = regionModel
+	model.models[resultsView] = resultsModel
+	model.models[compoundView] = compoundModel
+
 	return model
 }
 
+func (m *EntryModel) lastState() {
+	if m.history.Length() == 0 {
+		return
+	}
+	m.state, _ = m.history.Pop()
+}
+
+func (m *EntryModel) nextState(newState sessionState) {
+	if m.state == newState {
+		return
+	}
+	m.history.Push(m.state)
+	m.state = newState
+}
+
 func (m EntryModel) Init() tea.Cmd {
-	return nil
+	var cmds []tea.Cmd
+
+	for _, submodel := range m.models {
+		cmds = append(cmds, submodel.Init())
+	}
+
+	return tea.Batch(cmds...)
 }
 
 func (m EntryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -71,49 +98,39 @@ func (m EntryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c", "ctrl+q":
-			m.quitting = true
 			return m, tea.Quit
 		case "esc":
-			m.state = projectView
+			m.lastState()
+			return m, nil
+		case "\\":
+			m.nextState(compoundView)
 		}
-	case errMsg:
-		m.err = msg
-		return m, nil
 	case tea.WindowSizeMsg:
 		FullscreenStyle.Width(msg.Width)
 		FullscreenStyle.Height(msg.Height)
 
-		newRegion, newCmd := m.regionSelect.DoUpdate(msg, &m.stateData)
-		m.regionSelect = newRegion.(region.RegionSelect)
-		cmds = append(cmds, newCmd)
-
-		newProject, newCmd := m.projectSelect.DoUpdate(msg, &m.stateData)
-		m.projectSelect = newProject.(project.ProjectSelect)
-		cmds = append(cmds, newCmd)
-
-		newResults, newCmd := m.resultsView.DoUpdate(msg, &m.stateData)
-		m.resultsView = newResults.(results.ResultsPage)
-		cmds = append(cmds, newCmd)
+		// ensure even non-active models are alerted to the layout change
+		for key, value := range m.models {
+			if key != m.state {
+				newModel, newCmd := value.DoUpdate(msg, &m.stateData)
+				m.models[key] = newModel
+				cmds = append(cmds, newCmd)
+			}
+		}
 	case project.SelectedEvent:
-		m.state = regionView
+		m.nextState(regionView)
 	case region.SelectedEvent:
-		m.state = resultsView
+		m.nextState(resultsView)
+	case errMsg:
+		m.err = msg
+		return m, nil
 	}
 
-	switch m.state {
-	case regionView:
-		newRegion, newCmd := m.regionSelect.DoUpdate(msg, &m.stateData)
-		m.regionSelect = newRegion.(region.RegionSelect)
-		cmds = append(cmds, newCmd)
-	case projectView:
-		newProject, newCmd := m.projectSelect.DoUpdate(msg, &m.stateData)
-		m.projectSelect = newProject.(project.ProjectSelect)
-		cmds = append(cmds, newCmd)
-	case resultsView:
-		newResults, newCmd := m.resultsView.DoUpdate(msg, &m.stateData)
-		m.resultsView = newResults.(results.ResultsPage)
-		cmds = append(cmds, newCmd)
-	}
+	// forward command to the currently active model
+	activeModel := m.models[m.state]
+	newModel, newCmd := activeModel.DoUpdate(msg, &m.stateData)
+	m.models[m.state] = newModel
+	cmds = append(cmds, newCmd)
 
 	return m, tea.Batch(cmds...)
 }
@@ -123,21 +140,10 @@ func (m EntryModel) View() string {
 		return m.err.Error()
 	}
 
-	var str string
+	// render currently active model
+	str := m.models[m.state].RenderView(&m.stateData)
 
-	switch m.state {
-	case projectView:
-		str = m.projectSelect.RenderView(&m.stateData)
-	case regionView:
-		str = m.regionSelect.RenderView(&m.stateData)
-	case resultsView:
-		str = m.resultsView.RenderView(&m.stateData)
-	}
-
-	if m.quitting {
-		return "\n"
-	}
-
+	// enable mouse zones for rendered model
 	return zone.Scan(str)
 }
 

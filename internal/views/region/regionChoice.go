@@ -2,6 +2,7 @@ package region
 
 import (
 	"github.com/willis81808/bubbletea-test-app/internal/data"
+	"github.com/willis81808/bubbletea-test-app/internal/utils"
 
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
@@ -53,9 +54,10 @@ func (m RegionSelect) Init() tea.Cmd {
 	return nil
 }
 
-func (m RegionSelect) DoUpdate(msg tea.Msg, state *data.StateBag) (tea.Model, tea.Cmd) {
+func (m RegionSelect) DoUpdate(msg tea.Msg, state *data.StateBag) (utils.SubModel, tea.Cmd) {
 	m.state = state
-	return m.Update(msg)
+	model, cmd := m.Update(msg)
+	return model.(RegionSelect), cmd
 }
 
 func (m RegionSelect) Update(msg tea.Msg) (tea.Model, tea.Cmd) {

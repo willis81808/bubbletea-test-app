@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/willis81808/bubbletea-test-app/internal/data"
+	"github.com/willis81808/bubbletea-test-app/internal/utils"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -24,9 +25,10 @@ func (m ResultsPage) Init() tea.Cmd {
 	return nil
 }
 
-func (m ResultsPage) DoUpdate(msg tea.Msg, state *data.StateBag) (tea.Model, tea.Cmd) {
+func (m ResultsPage) DoUpdate(msg tea.Msg, state *data.StateBag) (utils.SubModel, tea.Cmd) {
 	m.state = state
-	return m.Update(msg)
+	model, cmd := m.Update(msg)
+	return model.(ResultsPage), cmd
 }
 
 func (m ResultsPage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {

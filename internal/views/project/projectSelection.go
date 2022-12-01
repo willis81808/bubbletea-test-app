@@ -2,8 +2,8 @@ package project
 
 import (
 	"github.com/willis81808/bubbletea-test-app/internal/data"
+	"github.com/willis81808/bubbletea-test-app/internal/utils"
 
-	"github.com/charmbracelet/bubbles/spinner"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -97,12 +97,13 @@ func (m ProjectSelect) makeSelection() (tea.Model, tea.Cmd) {
 }
 
 func (m ProjectSelect) Init() tea.Cmd {
-	return tea.Batch(spinner.Tick, textinput.Blink)
+	return textinput.Blink
 }
 
-func (m ProjectSelect) DoUpdate(msg tea.Msg, state *data.StateBag) (tea.Model, tea.Cmd) {
+func (m ProjectSelect) DoUpdate(msg tea.Msg, state *data.StateBag) (utils.SubModel, tea.Cmd) {
 	m.state = state
-	return m.Update(msg)
+	model, cmd := m.Update(msg)
+	return model.(ProjectSelect), cmd
 }
 
 func (m ProjectSelect) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
