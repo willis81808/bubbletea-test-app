@@ -3,8 +3,8 @@ module github.com/willis81808/bubbletea-test-app
 go 1.19
 
 require (
-	github.com/charmbracelet/bubbles v0.14.0
-	github.com/charmbracelet/bubbletea v0.22.1
+	github.com/charmbracelet/bubbles v0.15.0
+	github.com/charmbracelet/bubbletea v0.23.1
 	github.com/charmbracelet/lipgloss v0.6.0
 )
 
